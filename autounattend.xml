@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+    <servicing></servicing>
+    <settings pass="windowsPE">
+        <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <ImageInstall>
+                <OSImage>
+                    <InstallFrom>
+                        <MetaData wcm:action="add">
+                            <Key>/IMAGE/INDEX</Key>
+                            <Value>4</Value>
+                        </MetaData>
+                    </InstallFrom>
+                    <WillShowUI>OnError</WillShowUI>
+                </OSImage>
+            </ImageInstall>
+            <UserData>
+                <ProductKey>
+                    <WillShowUI>OnError</WillShowUI>
+                    <Key />
+                </ProductKey>
+                <AcceptEula>true</AcceptEula>
+            </UserData>
+            <RunSynchronous>
+                <RunSynchronousCommand wcm:action="add">
+                    <Path>REG ADD HKLM\System\Setup\LabConfig /v BypassTPMCheck /t REG_DWORD /d 1 /f</Path>
+                    <Order>1</Order>
+                    <Description>Игнорировать отсутствие TPM 2.0</Description>
+                </RunSynchronousCommand>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>2</Order>
+                    <Path>REG ADD HKLM\System\Setup\LabConfig /v BypassSecureBootCheck /t REG_DWORD /d 1 /f</Path>
+                    <Description>Игнорировать наличие Legacy BIOS, а так же UEFI с отключенным Secure Boot</Description>
+                </RunSynchronousCommand>
+                <RunSynchronousCommand wcm:action="add">
+                    <Path>REG ADD HKLM\System\Setup\LabConfig /v BypassRAMCheck /t REG_DWORD /d 1 /f</Path>
+                    <Order>3</Order>
+                    <Description>Пропустить проверку на соответствие минимальной оперативной памяти</Description>
+                </RunSynchronousCommand>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>4</Order>
+                    <Path>REG ADD HKLM\System\Setup\LabConfig /v BypassStorageCheck /t REG_DWORD /d 1 /f</Path>
+                    <Description>Не выполнять проверку размера системного диска</Description>
+                </RunSynchronousCommand>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>5</Order>
+                    <Path>REG ADD HKLM\System\Setup\LabConfig /v BypassCPUCheck /t REG_DWORD /d 1 /f</Path>
+                    <Description>Пропускать проверку процессора на совместимость</Description>
+                </RunSynchronousCommand>
+            </RunSynchronous>
+            <Diagnostics>
+                <OptIn>false</OptIn>
+            </Diagnostics>
+            <DynamicUpdate>
+                <Enable>false</Enable>
+                <WillShowUI>OnError</WillShowUI>
+            </DynamicUpdate>
+        </component>
+        <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <SetupUILanguage>
+                <WillShowUI>OnError</WillShowUI>
+            </SetupUILanguage>
+            <InputLocale>ru-RU</InputLocale>
+            <SystemLocale>ru-RU</SystemLocale>
+            <UILanguage>ru-RU</UILanguage>
+            <UserLocale>ru-RU</UserLocale>
+        </component>
+    </settings>
+    <settings pass="oobeSystem">
+        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <InputLocale>ru-RU; en-US</InputLocale>
+            <SystemLocale>ru-RU</SystemLocale>
+            <UILanguage>ru-RU</UILanguage>
+            <UserLocale>ru-RU</UserLocale>
+        </component>
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <FirstLogonCommands>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>cmd /C wmic useraccount where name=&quot;admin&quot; set PasswordExpires=false</CommandLine>
+                    <Order>1</Order>
+                    <Description>Срок действия пароля никогда не истекает</Description>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>2</Order>
+                    <CommandLine>cmd /C net localgroup Пользователи admin /delete</CommandLine>
+                    <Description>Удаление пользователя admin из группы Пользователи</Description>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>3</Order>
+                    <CommandLine>powershell -command &quot;(Get-Volume).DriveLetter | Foreach-Object {if (Test-Path &quot;${PSItem}:\reg\tweaks.reg&quot;) {reg load HKEY_USERS\Custom &quot;%systemdrive%\Users\Default\NTUSER.DAT&quot;; reg import &quot;${PSItem}:\reg\tweaks.reg&quot;; reg unload HKEY_USERS\Custom}}&quot;</CommandLine>
+                    <Description>Импорт настроек из reg-файла (команда взята с outsidethebox.ms)</Description>
+                </SynchronousCommand>
+            </FirstLogonCommands>
+            <OOBE>
+                <ProtectYourPC>3</ProtectYourPC>
+                <HideEULAPage>true</HideEULAPage>
+                <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+                <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+                <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+            </OOBE>
+            <UserAccounts>
+                <LocalAccounts>
+                    <LocalAccount wcm:action="add">
+                        <Password>
+                            <Value>UABhAHMAcwB3AG8AcgBkAA==</Value>
+                            <PlainText>false</PlainText>
+                        </Password>
+                        <Group>Administrators</Group>
+                        <Name>admin</Name>
+                        <DisplayName>Администратор</DisplayName>
+                    </LocalAccount>
+                </LocalAccounts>
+            </UserAccounts>
+            <BluetoothTaskbarIconEnabled>false</BluetoothTaskbarIconEnabled>
+            <TimeZone>Ekaterinburg Standard Time</TimeZone>
+        </component>
+    </settings>
+    <settings pass="offlineServicing">
+        <component name="Microsoft-Windows-LUA-Settings" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <EnableLUA>false</EnableLUA>
+        </component>
+    </settings>
+    <settings pass="specialize">
+        <component name="Microsoft-Windows-Security-SPP-UX" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <SkipAutoActivation>true</SkipAutoActivation>
+        </component>
+        <component name="Microsoft-Windows-Authentication-AuthUI-Component" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <DisableStartupSound>true</DisableStartupSound>
+        </component>
+    </settings>
+</unattend>
